@@ -1,8 +1,10 @@
-﻿using FluentValidation;
+﻿using System.ComponentModel.DataAnnotations;
+using FluentValidation;
 using SrBackendMillon.Application.Abstractions;
 using SrBackendMillon.Application.DTOs;
 using SrBackendMillon.Application.Mapping;
 using SrBackendMillon.Infrastructure.Repositories;
+using ValidationException = FluentValidation.ValidationException;
 
 namespace SrBackendMillon.Application.Services
 {
@@ -21,6 +23,12 @@ namespace SrBackendMillon.Application.Services
 
         public async Task<PropertyReadDto> CreatePropertyAsync(PropertyCreateDto dto, CancellationToken ct = default)
         {
+
+            var validation = await _createValidator.ValidateAsync(dto, ct);
+
+            if (!validation.IsValid)
+                throw new ValidationException(validation.Errors);
+
             var imageId = await _imageRepository.UploadImageAsync(dto.ImageId, ct);
 
             await _createValidator.ValidateAndThrowAsync(dto, cancellationToken: ct);
